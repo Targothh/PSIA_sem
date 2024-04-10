@@ -6,6 +6,11 @@
 
 #define PACKET_SIZE 1024
 
+typedef struct {
+    char id;
+    char index;
+    unsigned char data[1022];
+} datagram_t ;
 
  
 int main(int argc, char *argv[]){
@@ -15,8 +20,10 @@ int main(int argc, char *argv[]){
     }
     int socket_init;
     struct sockaddr_in sender_addr, reciver_addr;
-    char data[PACKET_SIZE];
-    memset(data, '\0', sizeof(data));
+    datagram_t datagram;
+    unsigned char datagram_arr[PACKET_SIZE];
+    datagram.id = 0;
+    memset(datagram_arr, '\0', sizeof(datagram_arr));
     if ((socket_init = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
         printf("Cannot create socket\n");
         exit(-1);
@@ -33,12 +40,16 @@ int main(int argc, char *argv[]){
         }
         printf("Listening on port %s...\n", argv[3]);
         //init phase - sockaddr_in of client and size of data
-        if (recv(socket_init, &sender_addr , sizeof(sender_addr), 0) < 0){
+        if (recv(socket_init, &sender_addr , sizeof(sender_addr), 0) < 0){ //reciving from anyone
             printf("Error while reciving sender's info\n");
             exit(-1);
         }
-        printf("Recived port: %d", ntohs(sender_addr.sin_addr.s_addr));
-        
+        printf("Recived port: %d", ntohs(sender_addr.sin_port));
+        recvfrom(socket_init, &datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
+        memcpy(&datagram, datagram_arr, sizeof(datagram_arr));
+        printf("%s", datagram.data);
+        // while(packet.id != 0){  
+        // }
 
     } else if(strcmp(argv[1], "-s") == 0){ //sender
         /*nepotrebne*/
@@ -55,6 +66,8 @@ int main(int argc, char *argv[]){
             exit(-1);
         }
         printf("Initial packet sent sucessfuly\n");
+        fgets((char*)datagram.data, 1024, stdin);
+        sendto(socket_init, datagram_arr, sizeof(datagram_arr), 0, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr));
     } else {
         printf("Invalid flag!\n");
         exit(-1);
