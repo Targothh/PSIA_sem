@@ -17,7 +17,6 @@ int main(int argc, char *argv[]){
     struct sockaddr_in sender_addr, reciver_addr;
     char data[PACKET_SIZE];
     memset(data, '\0', sizeof(data));
-    socklen_t reciver_lenght = sizeof(reciver_addr);
     if ((socket_init = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
         printf("Cannot create socket\n");
         exit(-1);
@@ -26,16 +25,19 @@ int main(int argc, char *argv[]){
         reciver_addr.sin_family = AF_INET;
         reciver_addr.sin_port = htons(atoi(argv[3]));
         reciver_addr.sin_addr.s_addr = inet_addr(argv[2]);
+        int a = ntohs(reciver_addr.sin_port);
+        printf("test: %d\n", a);
         if(bind(socket_init, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr)) < 0){
             printf("Couldn't bind to the port\n");
             exit(-1);
         }
         printf("Listening on port %s...\n", argv[3]);
         //init phase - sockaddr_in of client and size of data
-        if (recv(socket_init, &reciver_addr , sizeof(reciver_addr), 0) < 0){
+        if (recv(socket_init, &sender_addr , sizeof(sender_addr), 0) < 0){
             printf("Error while reciving sender's info\n");
             exit(-1);
         }
+        printf("Recived port: %d", ntohs(sender_addr.sin_port));
         
 
     } else if(strcmp(argv[1], "-s") == 0){ //sender
@@ -48,7 +50,7 @@ int main(int argc, char *argv[]){
         reciver_addr.sin_family = AF_INET;
         reciver_addr.sin_port = htons(atoi(argv[3]));
         reciver_addr.sin_addr.s_addr = inet_addr(argv[2]);
-        if(sendto(socket_init, &sender_addr, sizeof(sender_addr), 0, (struct sockaddr*)&reciver_addr, &reciver_lenght) < 0){
+        if(sendto(socket_init, &sender_addr, sizeof(sender_addr), 0, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr)) < 0){
             printf("Error while sending info\n");
             exit(-1);
         }
