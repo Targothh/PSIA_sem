@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
             printf("Error while reciving sender's info\n");
             exit(-1);
         }
-        printf("Recived port: %d", ntohs(sender_addr.sin_port));
+        printf("Recived port: %d", ntohs(sender_addr.sin_addr.s_addr));
         
 
     } else if(strcmp(argv[1], "-s") == 0){ //sender
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]){
             printf("Error while sending info\n");
             exit(-1);
         }
+        printf("Initial packet sent sucessfuly\n");
     } else {
         printf("Invalid flag!\n");
         exit(-1);
