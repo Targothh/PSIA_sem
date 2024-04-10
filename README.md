@@ -2,5 +2,5 @@
 
 -r (reciverIP) (reciverPORT) #reciver mode
 
--s (senderIP) (reciverIP) (reciverPORT) #sender mode
+-s (reciverIP) (reciverPORT) #sender mode
 
