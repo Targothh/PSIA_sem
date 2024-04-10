@@ -1,6 +1,6 @@
 # PSIA_sem
 
--r <reciverIP> <reciverPORT> #reciver mode
+-r (reciverIP) (reciverPORT) #reciver mode
 
--s <senderIP> <reciverIP> <reciverPORT> #sender mode
+-s (senderIP) (reciverIP) (reciverPORT) #sender mode
 
