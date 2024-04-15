@@ -32,31 +32,32 @@ int main(int argc, char *argv[]){
         reciver_addr.sin_family = AF_INET;
         reciver_addr.sin_port = htons(atoi(argv[3]));
         reciver_addr.sin_addr.s_addr = inet_addr(argv[2]);
-        int a = ntohs(reciver_addr.sin_port);
-        printf("test: %d\n", a);
         if(bind(socket_init, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr)) < 0){
             printf("Couldn't bind to the port\n");
             exit(-1);
         }
         printf("Listening on port %s...\n", argv[3]);
         //init phase - sockaddr_in of client and size of data
-        if (recv(socket_init, &sender_addr , sizeof(sender_addr), 0) < 0){ //reciving from anyone
-            printf("Error while reciving sender's info\n");
-            exit(-1);
+        if (recv(socket_init, &sender_addr , sizeof(sender_addr), 0) > 0){ //reciving from anyone
+            printf("Recived port: %d", ntohs(sender_addr.sin_port));
         }
-        printf("Recived port: %d", ntohs(sender_addr.sin_port));
-        recvfrom(socket_init, &datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
-        memcpy(&datagram, datagram_arr, sizeof(datagram_arr));
-        printf("%s", datagram.data);
+        // printf("Recived port: %d", ntohs(sender_addr.sin_port));
+        // recvfrom(socket_init, &datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
+        // recvfrom(socket_init, &datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
+        // memcpy(&datagram, datagram_arr, sizeof(datagram_arr));
+        // printf("Message: %s", datagram.data);
         // while(packet.id != 0){  
         // }
 
     } else if(strcmp(argv[1], "-s") == 0){ //sender
         /*nepotrebne*/
         sender_addr.sin_family = AF_INET;
-        sender_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
         sender_addr.sin_port = htons(5005);
-
+        sender_addr.sin_addr.s_addr = inet_addr("147.32.112.43");
+        if(bind(socket_init, (struct sockaddr*)&sender_addr, sizeof(sender_addr)) < 0){
+            printf("Couldn't bind to the port\n");
+            exit(-1);
+        }
         /*nepotrebne*/
         reciver_addr.sin_family = AF_INET;
         reciver_addr.sin_port = htons(atoi(argv[3]));
