@@ -38,16 +38,12 @@ int main(int argc, char *argv[]){
         }
         printf("Listening on port %s...\n", argv[3]);
         //init phase - sockaddr_in of client and size of data
-        if (recv(socket_init, &sender_addr , sizeof(sender_addr), 0) > 0){ //reciving from anyone
+        if (recv(socket_init, &sender_addr , PACKET_SIZE, 0) > 0){ //reciving from anyone
             printf("Recived port: %d", ntohs(sender_addr.sin_port));
         }
-        // printf("Recived port: %d", ntohs(sender_addr.sin_port));
-        // recvfrom(socket_init, &datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
-        // recvfrom(socket_init, &datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
-        // memcpy(&datagram, datagram_arr, sizeof(datagram_arr));
-        // printf("Message: %s", datagram.data);
-        // while(packet.id != 0){  
-        // }
+        recvfrom(socket_init, datagram_arr, sizeof(datagram_arr),0, (struct sockaddr *)&sender_addr,(unsigned int*) sizeof(sender_addr));
+        memcpy(&datagram, datagram_arr, sizeof(datagram_arr));
+        printf("Message: %s", datagram.data);
 
     } else if(strcmp(argv[1], "-s") == 0){ //sender
         /*nepotrebne*/
@@ -62,12 +58,12 @@ int main(int argc, char *argv[]){
         reciver_addr.sin_family = AF_INET;
         reciver_addr.sin_port = htons(atoi(argv[3]));
         reciver_addr.sin_addr.s_addr = inet_addr(argv[2]);
-        if(sendto(socket_init, &sender_addr, sizeof(sender_addr), 0, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr)) < 0){
+        if(sendto(socket_init, &sender_addr, PACKET_SIZE, 0, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr)) < 0){
             printf("Error while sending info\n");
             exit(-1);
         }
         printf("Initial packet sent sucessfuly\n");
-        fgets((char*)datagram.data, 1024, stdin);
+        fgets((char*)datagram.data, PACKET_SIZE, stdin);
         sendto(socket_init, datagram_arr, sizeof(datagram_arr), 0, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr));
     } else {
         printf("Invalid flag!\n");
