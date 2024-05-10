@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[]){
     int socket_init;
-    struct sockaddr_in sender_addr, reciver_addr;
+    struct sockaddr_in sender_addr, receiver_addr;
     datagram_t datagram;
     unsigned char datagram_arr[PACKET_SIZE];
     datagram.id = 0;
@@ -22,17 +22,17 @@ int main(int argc, char *argv[]){
         printf("Cannot create socket\n");
         exit(-1);
     }
-    reciver_addr.sin_family = AF_INET;
-    reciver_addr.sin_port = htons(RECIVER_PORT);
-    reciver_addr.sin_addr.s_addr = inet_addr(RECIVER_ADRESS);
+    receiver_addr.sin_family = AF_INET;
+    receiver_addr.sin_port = htons(RECEIVER_PORT);
+    receiver_addr.sin_addr.s_addr = inet_addr(RECEIVER_ADRESS);
     sender_addr.sin_family = AF_INET;
     sender_addr.sin_port = htons(SENDER_PORT);
     sender_addr.sin_addr.s_addr = inet_addr(SENDER_ADRESS);
-    if(bind(socket_init, (struct sockaddr*)&reciver_addr, sizeof(reciver_addr)) < 0){
+    if(bind(socket_init, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)) < 0){
             printf("Couldn't bind to the port\n");
             exit(-1);
         }
-    printf("Listening on port %d...\n", RECIVER_PORT);
+    printf("Listening on port %d...\n", RECEIVER_PORT);
 
     FILE *fr;
         fr = fopen("OUTPUT1.jpg", "wb");

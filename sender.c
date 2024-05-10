@@ -25,8 +25,8 @@ int main(int argc, char *argv[]){
         exit(-1);
     }
     reciver_addr.sin_family = AF_INET;
-    reciver_addr.sin_port = htons(RECIVER_PORT);
-    reciver_addr.sin_addr.s_addr = inet_addr(RECIVER_ADRESS);
+    reciver_addr.sin_port = htons(RECEIVER_PORT);
+    reciver_addr.sin_addr.s_addr = inet_addr(RECEIVER_ADRESS);
     sender_addr.sin_family = AF_INET;
     sender_addr.sin_port = htons(SENDER_PORT);
     sender_addr.sin_addr.s_addr = inet_addr(SENDER_ADRESS);
