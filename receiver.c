@@ -1,12 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <zlib.h>
-#include <errno.h>
 #include "packet.h"
 
 int main(int argc, char *argv[]){
@@ -22,12 +13,8 @@ int main(int argc, char *argv[]){
         printf("Cannot create socket\n");
         exit(-1);
     }
-    receiver_addr.sin_family = AF_INET;
-    receiver_addr.sin_port = htons(RECEIVER_PORT);
-    receiver_addr.sin_addr.s_addr = inet_addr(RECEIVER_ADRESS);
-    sender_addr.sin_family = AF_INET;
-    sender_addr.sin_port = htons(SENDER_PORT);
-    sender_addr.sin_addr.s_addr = inet_addr(SENDER_ADRESS);
+    setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADRESS);
+    setup_addr(&sender_addr, SENDER_PORT, SENDER_ADRESS);
     if(bind(socket_init, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)) < 0){
             printf("Couldn't bind to the port\n");
             exit(-1);
@@ -42,6 +29,6 @@ int main(int argc, char *argv[]){
             fwrite(datagram.data, sizeof(datagram.data)-datagram.id, 1, fr);
         }
     fclose(fr);
-
+    close(socket_init);
+    return 0;
 }
- 

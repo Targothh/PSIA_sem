@@ -1,12 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <zlib.h>
-#include <errno.h>
 #include "packet.h"
 
 int main(int argc, char *argv[]){
@@ -24,20 +15,16 @@ int main(int argc, char *argv[]){
         printf("Cannot create socket\n");
         exit(-1);
     }
-    reciver_addr.sin_family = AF_INET;
-    reciver_addr.sin_port = htons(RECEIVER_PORT);
-    reciver_addr.sin_addr.s_addr = inet_addr(RECEIVER_ADRESS);
-    sender_addr.sin_family = AF_INET;
-    sender_addr.sin_port = htons(SENDER_PORT);
-    sender_addr.sin_addr.s_addr = inet_addr(SENDER_ADRESS);
+    setup_addr(&sender_addr, SENDER_PORT, SENDER_ADRESS);
+    setup_addr(&reciver_addr, RECEIVER_PORT, RECEIVER_ADRESS);
     if(bind(socket_init, (struct sockaddr*)&sender_addr, sizeof(sender_addr)) < 0){
         printf("Couldn't bind to the port\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     FILE *fw;
     if ((fw = fopen(name, "rb")) == NULL){
         printf("File not found!\n");
-        exit(404);
+        exit(EXIT_NOT_FOUND);
     }
     int id;
     while(datagram.id == 0){
@@ -50,4 +37,5 @@ int main(int argc, char *argv[]){
         }
     fclose(fw);
     close(socket_init);
+    return 0;
 }
