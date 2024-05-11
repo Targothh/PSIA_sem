@@ -12,8 +12,8 @@
 #include <stdbool.h>
 #define PACKET_SIZE 1024
 #define DATA_SIZE 1000
-#define SENDER_ADRESS "127.0.0.1"
-#define RECEIVER_ADRESS "127.0.0.1"
+#define SENDER_ADDRESS "127.0.0.1"
+#define RECEIVER_ADDRESS "127.0.0.1"
 #define SENDER_PORT 5005
 #define RECEIVER_PORT 5002
 #define MAX_TIMEOUT 2

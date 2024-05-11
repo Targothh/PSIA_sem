@@ -13,8 +13,8 @@ int main(int argc, char *argv[]){
         printf("Cannot create socket\n");
         exit(-1);
     }
-    setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADRESS);
-    setup_addr(&sender_addr, SENDER_PORT, SENDER_ADRESS);
+    setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADDRESS); 
+    setup_addr(&sender_addr, SENDER_PORT, SENDER_ADDRESS);
     if(bind(socket_init, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr)) < 0){
             printf("Couldn't bind to the port\n");
             exit(-1);
