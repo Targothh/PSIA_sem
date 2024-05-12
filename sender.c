@@ -22,10 +22,13 @@ int main(int argc, char *argv[]){
         exit(EXIT_NOT_FOUND);
     }
     int read_data; 
+    uLong crc;
     while(datagram.free_space == 0){
         if((read_data=fread(datagram.data, 1, sizeof(datagram.data), fw)) != DATA_SIZE){
             datagram.free_space = sizeof(datagram.data) - read_data;
-        }                                                                  
+        }                     
+        crc = crc32(0L, Z_NULL, 0);                                        
+        datagram.crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));     
         sendto(socket_send, (const void*)&datagram, sizeof(datagram), 0, (struct sockaddr*)&receiver_addr, sizeof(receiver_addr));
         datagram.index++;
         }

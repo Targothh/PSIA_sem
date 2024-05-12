@@ -20,10 +20,18 @@ int main(int argc, char *argv[]){
     }
     printf("Listening on port %d...\n", RECEIVER_PORT);
 
+    uLong crc;
     FILE *fr;
     fr = fopen("OUTPUT1.jpg", "wb");
     while(datagram.free_space == 0){
         recvfrom(socket_recv, (void*)&datagram, sizeof(datagram), 0, (struct sockaddr *)&sender_addr, &sender_addr_len);
+        crc = crc32(0L, Z_NULL, 0);
+        crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
+        if (datagram.crc != crc){
+            printf("CRC error\n");
+            printf("Index: %d, CRC: %lu, expected CRC: %lu\n", datagram.index, datagram.crc, crc);
+            exit(-1);
+        }
         fwrite(datagram.data, sizeof(datagram.data) - datagram.free_space, 1, fr);
     }
     fclose(fr);
