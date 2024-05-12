@@ -22,7 +22,7 @@
 
 
 typedef struct {
-    int id;
+    int free_space;
     uLong crc;
     int index;
     unsigned char data[DATA_SIZE];
