@@ -17,7 +17,6 @@
 #define SENDER_PORT 5005
 #define RECEIVER_PORT 5002
 #define MAX_TIMEOUT 2
-#define ACK (last_index + 1)
 #define EXIT_NOT_FOUND 404
 
 
@@ -29,5 +28,6 @@ typedef struct {
 } datagram_t ;
 
 void setup_addr(struct sockaddr_in *addr, int port, char *ip);
-
+void bind_socket(int sockfd, struct sockaddr_in *addr);
+int init_socket(void);
 #endif
