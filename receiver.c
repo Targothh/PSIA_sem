@@ -3,6 +3,8 @@ int main(int argc, char *argv[]){
     int socket_recv = init_socket();
     struct sockaddr_in sender_addr, receiver_addr;
     datagram_t datagram;
+    datagram.index = 0;
+    datagram.free_space = 0;
     socklen_t sender_addr_len = sizeof(sender_addr);
     uLong crc;
     FILE *fr;

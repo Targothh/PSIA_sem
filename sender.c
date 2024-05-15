@@ -6,6 +6,8 @@ int main(int argc, char *argv[]){
     int socket_send = init_socket();
     struct sockaddr_in sender_addr, receiver_addr;
     datagram_t datagram;
+    datagram.index = 0;
+    datagram.free_space = 0;
     setup_addr(&sender_addr, SENDER_PORT, SENDER_ADDRESS);
     setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADDRESS);
     bind_socket(socket_send, &sender_addr);
