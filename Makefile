@@ -22,5 +22,5 @@ utils.o: utils.c
 	$(CC) $(CFLAGS) -c utils.c
 
 clean:
-	rm -f sender receiver sender.o receiver.o utils.o OUTPUT1.jpg
-
+	rm -f sender receiver sender.o receiver.o utils.o OUTPUT1.*
+	clear
