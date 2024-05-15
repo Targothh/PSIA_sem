@@ -10,6 +10,10 @@ int main(int argc, char *argv[]){
     setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADDRESS); 
     setup_addr(&sender_addr, SENDER_PORT, SENDER_ADDRESS);
     bind_socket(socket_recv, &receiver_addr);
+    struct timeval tv;
+    tv.tv_sec = MAX_TIMEOUT;
+    tv.tv_usec = 0;
+    setsockopt(socket_recv, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
     printf("Listening on port %d...\n", RECEIVER_PORT);
 
 
@@ -22,8 +26,7 @@ int main(int argc, char *argv[]){
         }
         crc = crc32(0L, Z_NULL, 0);     
         crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
-        printf("random: %d\n", random);
-        if(datagram.index == expected_index && crc == datagram.crc){  
+        if((datagram.index == expected_index && crc == datagram.crc) || datagram.index < expected_index){  
             fwrite(datagram.data, sizeof(datagram.data) - datagram.free_space, 1, fr);
             sendto(socket_recv, &expected_index, sizeof(expected_index), 0, (struct sockaddr *) &sender_addr, sender_addr_len);
             expected_index++;
@@ -33,7 +36,7 @@ int main(int argc, char *argv[]){
         }
         if (datagram.free_space != 0)
             break;
-    }
+        }
     fclose(fr);
     close(socket_recv);
     return 0;
