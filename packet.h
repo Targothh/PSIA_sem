@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #define PACKET_SIZE 1024
-#define DATA_SIZE 1000
+#define DATA_SIZE 968
 #define SENDER_DATA_ADDRESS "127.0.0.1" 
 #define SENDER_ACK_ADDRESS "127.0.0.1" 
 #define RECEIVER_ADDRESS "127.0.0.1" 

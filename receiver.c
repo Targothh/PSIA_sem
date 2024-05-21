@@ -10,18 +10,20 @@ int main(int argc, char *argv[]){
     uLong crc;
     FILE *fr;
     int expected_index = 0, received = -1;
+    struct timeval tv;
+    tv.tv_sec = MAX_TIMEOUT;
+    tv.tv_usec = 0;
+    fr = fopen("OUTPUT1.jpg", "wb");
+    
     setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADDRESS); 
     setup_addr(&sender_data_addr, NETDERPER_SENDER_DATA_PORT, SENDER_DATA_ADDRESS);
     setup_addr(&sender_ack_addr, NETDERPER_SENDER_ACK_PORT, SENDER_ACK_ADDRESS);
     bind_socket(socket_recv, &receiver_addr);
-    struct timeval tv;
-    tv.tv_sec = MAX_TIMEOUT;
-    tv.tv_usec = 0;
+
     setsockopt(socket_recv, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
     printf("Listening on port %d...\n", RECEIVER_PORT);
 
 
-    fr = fopen("OUTPUT1.jpg", "wb");
 
     while(true){
         setup_addr(&sender_ack_addr, NETDERPER_SENDER_ACK_PORT, SENDER_ACK_ADDRESS);
