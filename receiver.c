@@ -12,8 +12,8 @@ int main(int argc, char *argv[]){
     FILE *fr;
     int expected_index = 0, received = -1;
     struct timeval tv;
-    tv.tv_sec = MAX_TIMEOUT;
-    tv.tv_usec = 0;
+    tv.tv_sec = 0;
+    tv.tv_usec = MAX_TIMEOUT;
     unsigned char received_hash[SHA256_BLOCK_SIZE];
     char *file_name = "OUTPUT1.jpg";
     fr = fopen(file_name, "wb");

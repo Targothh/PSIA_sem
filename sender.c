@@ -45,8 +45,8 @@ int main(int argc, char *argv[]){
     datagram.index = 0;
     datagram.free_space = 0;
     struct timeval tv;
-    tv.tv_sec = MAX_TIMEOUT;
-    tv.tv_usec = 0;
+    tv.tv_sec = 0;
+    tv.tv_usec = MAX_TIMEOUT;
     setup_addr(&sender_data_addr, SENDER_DATA_PORT, SENDER_DATA_ADDRESS);
     setup_addr(&sender_ack_addr, SENDER_ACK_PORT, SENDER_ACK_ADDRESS);
     setup_addr(&receiver_addr, NETDERPER_RECEIVER_PORT, NETDERPER_RECEIVER_ADDRESS);
