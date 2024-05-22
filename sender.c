@@ -6,12 +6,13 @@ int main(int argc, char *argv[]){
     int socket_data_sender = init_socket(),
         socket_ack_sender = init_socket();
     struct sockaddr_in sender_data_addr, receiver_addr, sender_ack_addr;
+    socklen_t receiver_addr_len = sizeof(receiver_addr);
     datagram_t datagram;
     datagram.index = 0;
     datagram.free_space = 0;
     setup_addr(&sender_data_addr, SENDER_DATA_PORT, SENDER_DATA_ADDRESS);
     setup_addr(&sender_ack_addr, SENDER_ACK_PORT, SENDER_ACK_ADDRESS);
-    setup_addr(&receiver_addr, RECEIVER_PORT, RECEIVER_ADDRESS);
+    setup_addr(&receiver_addr, NETDERPER_RECEIVER_PORT, NETDERPER_RECEIVER_ADDRESS);
 
     bind_socket(socket_data_sender, &sender_data_addr);
     bind_socket(socket_ack_sender, &sender_ack_addr);
@@ -23,13 +24,15 @@ int main(int argc, char *argv[]){
     struct timeval tv;
     tv.tv_sec = MAX_TIMEOUT;
     tv.tv_usec = 0;
-    setsockopt(socket_data_sender, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+    setsockopt(socket_data_sender, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof tv);
     setsockopt(socket_ack_sender, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
     int read_data; 
     uLong crc;
     int ack = -1;
+    int sent = -1;
     while(true){
-        if (ack == datagram.index - 1){
+        setup_addr(&receiver_addr, NETDERPER_RECEIVER_PORT, NETDERPER_RECEIVER_ADDRESS);
+        if (ack == sent){
             if((read_data=fread(datagram.data, 1, sizeof(datagram.data), fw)) != DATA_SIZE){
                 datagram.free_space = sizeof(datagram.data) - read_data;
             } 
@@ -40,14 +43,15 @@ int main(int argc, char *argv[]){
             fprintf(stderr,"Failed to send data\n");
             continue;
         }
-
-
-        if(recvfrom(socket_ack_sender, &ack, sizeof(ack), 0, NULL, NULL) >= 0 && ack == datagram.index){
+        sent = datagram.index;
+        fprintf(stderr,"Sent %d\n", sent);
+        //todo crc
+        if(recvfrom(socket_ack_sender, &ack, sizeof(ack), 0, (struct sockaddr *) &receiver_addr , &receiver_addr_len) >= 0 && ack == sent){
             datagram.index++;
         } else {
-            fprintf(stderr,"NACK or timeout, resending %d\n", datagram.index);
+            fprintf(stderr,"NACK or timeout, resending %d, ack = %d\n", sent, ack);
         }
-        if (ack == datagram.index - 1 && datagram.free_space != 0)
+        if (ack == sent && datagram.free_space != 0)
             break;
     }
 

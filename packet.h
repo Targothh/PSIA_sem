@@ -11,21 +11,29 @@
 #include <errno.h>
 #include <stdbool.h>
 #define PACKET_SIZE 1024
-#define DATA_SIZE 1000
-#define SENDER_DATA_ADDRESS "127.0.0.1" 
-#define SENDER_ACK_ADDRESS "127.0.0.1"
-#define RECEIVER_ADDRESS "127.0.0.1"
-#define SENDER_DATA_PORT 5005
-#define SENDER_ACK_PORT 5006
-#define RECEIVER_PORT 5002
-#define MAX_TIMEOUT 2
+#define DATA_SIZE 958
+#define SENDER_DATA_ADDRESS "147.32.216.190" 
+#define SENDER_ACK_ADDRESS "147.32.216.190" 
+#define RECEIVER_ADDRESS "147.32.217.229" 
+#define NETDERPER_RECEIVER_ADDRESS "147.32.216.190"
+#define SENDER_DATA_PORT 5001
+#define SENDER_ACK_PORT 15001
+#define NETDERPER_RECEIVER_PORT 14000
+//#define NETDERPER_RECEIVER_ADDRESS "147.32.217.229"
+// #define NETDERPER_SENDER_DATA_PORT 5001
+// #define NETDERPER_SENDER_ACK_PORT 15001
+// #define NETDERPER_RECEIVER_PORT 15000
+#define NETDERPER_SENDER_DATA_PORT 14000
+#define NETDERPER_SENDER_ACK_PORT 14001
+#define RECEIVER_PORT 15000
+#define MAX_TIMEOUT 1
 #define EXIT_NOT_FOUND 404
-
+#include <stdint.h>
 
 typedef struct {
-    int free_space;
+    int16_t free_space;
     uLong crc;
-    int index;
+    int16_t index;
     unsigned char data[DATA_SIZE];
 } datagram_t ;
 
