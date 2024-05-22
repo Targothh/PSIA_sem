@@ -1,5 +1,14 @@
 #include "packet.h"
 
+
+void read_data(FILE *fw, datagram_t *datagram){
+    int read_data;
+    if((read_data=fread(datagram->data, 1, sizeof(datagram->data), fw)) != DATA_SIZE){
+        datagram->free_space = sizeof(datagram->data) - read_data;
+    } 
+}
+
+
 int main(int argc, char *argv[]){
     char name[32];
     strcpy(name, argv[1]);
@@ -26,16 +35,13 @@ int main(int argc, char *argv[]){
     tv.tv_usec = 0;
     setsockopt(socket_data_sender, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof tv);
     setsockopt(socket_ack_sender, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-    int read_data; 
     uLong crc;
     int ack = -1;
     int sent = -1;
     while(true){
         setup_addr(&receiver_addr, NETDERPER_RECEIVER_PORT, NETDERPER_RECEIVER_ADDRESS);
         if (ack == sent){
-            if((read_data=fread(datagram.data, 1, sizeof(datagram.data), fw)) != DATA_SIZE){
-                datagram.free_space = sizeof(datagram.data) - read_data;
-            } 
+            read_data(fw, &datagram);
         }
         crc = crc32(0L, Z_NULL, 0);                                        
         datagram.crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));     
