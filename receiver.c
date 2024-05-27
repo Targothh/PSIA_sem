@@ -1,5 +1,14 @@
 #include "packet.h"
-#include "sha256.c"
+
+
+int receive_data(int socket_recv, datagram_t *datagram, struct sockaddr_in *sender_data_addr, socklen_t *sender_addr_len) {
+    if (recvfrom(socket_recv, datagram, sizeof(*datagram), 0, (struct sockaddr *)sender_data_addr, sender_addr_len) < 0) {
+        fprintf(stderr, "Error in receiving data\n");
+        return -1;
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[]){
     int socket_recv = init_socket();
     struct sockaddr_in sender_data_addr, receiver_addr, sender_ack_addr;
@@ -25,9 +34,7 @@ int main(int argc, char *argv[]){
     setsockopt(socket_recv, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
     printf("Listening on port %d...\n", RECEIVER_PORT);
     while(1){
-        if(recvfrom(socket_recv, &datagram, sizeof(datagram), 0, (struct sockaddr *) &sender_data_addr, &sender_addr_len) < 0){            printf("\n");
-            fprintf(stderr,"Error in receiving data tady\n");
-        }
+        receive_data(socket_recv, &datagram, &sender_data_addr, &sender_addr_len);
         crc = crc32(0L, Z_NULL, 0);     
         crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
         if(crc == datagram.crc){
@@ -39,11 +46,7 @@ int main(int argc, char *argv[]){
         }
     }
     while(true){
-        setup_addr(&sender_ack_addr, NETDERPER_SENDER_ACK_PORT, SENDER_ACK_ADDRESS);
-        if(recvfrom(socket_recv, &datagram, sizeof(datagram), 0, (struct sockaddr *) &sender_data_addr, &sender_addr_len) < 0){
-            fprintf(stderr,"Error in receiving data\n");
-            continue;
-        }
+        receive_data(socket_recv, &datagram, &sender_data_addr, &sender_addr_len);
         received = datagram.index;
         crc = crc32(0L, Z_NULL, 0);
         crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
@@ -67,23 +70,12 @@ int main(int argc, char *argv[]){
 
     SHA256_CTX hash;
     sha256_init(&hash);
-    int size;
-    unsigned char data[DATA_SIZE];
     unsigned char final_hash[SHA256_BLOCK_SIZE];
-    FILE *fhs;
-    if ((fhs = fopen(file_name, "rb")) == NULL){
-        fprintf(stderr,"File not found!\n");
-        exit(EXIT_NOT_FOUND);
-    }
-    while ((size = fread (data, 1, DATA_SIZE, fhs)) != 0){
-        sha256_update(&hash, data, size);
-    }
-    sha256_final(&hash, final_hash);
-    fclose(fhs);
+    compute_file_hash(file_name, final_hash);
     printf("File hash:\n");
-    for(int i = 0; i < SHA256_BLOCK_SIZE; i++) printf("%02x", final_hash[i]);
+    print_sha256_hash(final_hash);
     printf("\nReceived hash:\n");
-    for(int i = 0; i < SHA256_BLOCK_SIZE; i++) printf("%02x", received_hash[i]);
+    print_sha256_hash(received_hash);
     close(socket_recv);
     return 0;
 } 
