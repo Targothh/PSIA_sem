@@ -29,6 +29,7 @@
 #define RECEIVER_PORT 15000
 #define MAX_TIMEOUT 500000
 #define EXIT_NOT_FOUND 404
+#define WINDOW_SIZE 5
 #include <stdint.h>
 
 typedef struct {
@@ -42,6 +43,12 @@ typedef struct{
     int16_t index;
     uLong crc;
 } ack_t;
+
+typedef struct{
+    int16_t index;
+    ack_t acks[WINDOW_SIZE];
+    datagram_t datagrams[WINDOW_SIZE];
+} window_t; 
 
 void setup_addr(struct sockaddr_in *addr, int port, char *ip);
 void bind_socket(int sockfd, struct sockaddr_in *addr);
