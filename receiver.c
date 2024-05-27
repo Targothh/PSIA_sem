@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
         received = datagram.index;
         crc = crc32(0L, Z_NULL, 0);
         crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
-        if((datagram.index == expected_index && crc == datagram.crc) || received < expected_index){  
+        if(received <= expected_index && crc == datagram.crc){  
             if (received == expected_index){
                 fwrite(datagram.data, sizeof(datagram.data) - datagram.free_space, 1, fr);
                 fprintf(stderr,"Received %d\n", received);
