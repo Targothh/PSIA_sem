@@ -24,3 +24,29 @@ void bind_socket(int sockfd, struct sockaddr_in *addr) {
         exit(EXIT_FAILURE);
     }
 }
+
+void compute_file_hash(const char* filename, unsigned char* final_hash) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        fprintf(stderr, "File not found!\n");
+        exit(EXIT_NOT_FOUND);
+    }
+
+    SHA256_CTX hash;
+    sha256_init(&hash);
+    unsigned char data[DATA_SIZE];
+    int size;
+    
+    while ((size = fread(data, 1, DATA_SIZE, file)) != 0) {
+        sha256_update(&hash, data, size);
+    }
+    
+    sha256_final(&hash, final_hash);
+    fclose(file);
+}
+void print_sha256_hash(const unsigned char* hash) {
+    for (int i = 0; i < SHA256_BLOCK_SIZE; i++) {
+        printf("%02x", hash[i]);
+    }
+    printf("\n");
+}
