@@ -18,6 +18,7 @@ int main(int argc, char *argv[]){
     socklen_t sender_addr_len = sizeof(sender_data_addr),
                 sender_ack_addr_len = sizeof(sender_ack_addr);
     uLong crc;
+    ack_t ack = {-1, crc32(0L, Z_NULL, 0)};
     FILE *fr;
     int expected_index = 0, received = -1;
     struct timeval tv;
@@ -41,7 +42,9 @@ int main(int argc, char *argv[]){
             fprintf(stderr,"Hash received\n");
             memcpy(received_hash, datagram.data, SHA256_BLOCK_SIZE);
             int received = 1;
-            sendto(socket_recv, &received, sizeof(received), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
+            ack.index = received;
+            ack.crc = crc32(0L, (const Bytef*) &ack.index, sizeof(ack.index));
+            sendto(socket_recv, &ack, sizeof(ack), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
             break;
         }
     }
@@ -54,16 +57,23 @@ int main(int argc, char *argv[]){
             if (received == expected_index){
                 fwrite(datagram.data, sizeof(datagram.data) - datagram.free_space, 1, fr);
                 fprintf(stderr,"Received %d\n", received);
-                sendto(socket_recv, &expected_index, sizeof(expected_index), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
+                ack.index = received;
+                ack.crc = crc32(0L, (const Bytef*) &ack.index, sizeof(ack.index));
+                sendto(socket_recv, &ack, sizeof(ack), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
                 expected_index++;                
                 if (datagram.free_space != 0)
                     break;  
             }
-            else
-                sendto(socket_recv, &received, sizeof(received), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
+            else{
+                ack.index = received;
+                ack.crc = crc32(0L, (const Bytef*) &ack.index, sizeof(ack.index));
+                sendto(socket_recv, &ack, sizeof(ack), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);   
+            }
         } else {
-            int nack = -1;
-            sendto(socket_recv, &nack, sizeof(nack), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
+                ack.index = -1;
+                ack.crc = crc32(0L, (const Bytef*) &ack.index, sizeof(ack.index));
+                sendto(socket_recv, &ack, sizeof(ack), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);   
+            sendto(socket_recv, &ack, sizeof(ack), 0, (struct sockaddr *) &sender_ack_addr, sender_ack_addr_len);
         }
     }
     fclose(fr);

@@ -38,6 +38,11 @@ typedef struct {
     unsigned char data[DATA_SIZE];
 } datagram_t ;
 
+typedef struct{
+    int16_t index;
+    uLong crc;
+} ack_t;
+
 void setup_addr(struct sockaddr_in *addr, int port, char *ip);
 void bind_socket(int sockfd, struct sockaddr_in *addr);
 int init_socket(void);

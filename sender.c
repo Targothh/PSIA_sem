@@ -20,33 +20,36 @@ void read_data(FILE *fw, datagram_t *datagram) {
     }
 }
 
-int send_data(int socket_data_sender, struct sockaddr_in receiver_addr, datagram_t *datagram) {
+int send_data(int socket_data_sender, struct sockaddr_in receiver_addr, datagram_t datagram) {
     uLong crc = crc32(0L, Z_NULL, 0);
-    datagram->crc = crc32(crc, (const Bytef*) datagram->data, (uInt)(sizeof(datagram->data)));
-    if (sendto(socket_data_sender, datagram, sizeof(*datagram), 0, (struct sockaddr *) &receiver_addr, sizeof(receiver_addr)) < 0) {
+    datagram.crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
+    if (sendto(socket_data_sender, &datagram, sizeof(datagram), 0, (struct sockaddr *) &receiver_addr, sizeof(receiver_addr)) < 0) {
         fprintf(stderr, "Failed to send data\n");
         return -1;
     }
-    return datagram->index;
+    return datagram.index;
 }
 
-int recv_ack(int socket_ack_sender, struct sockaddr_in receiver_addr, int sent, datagram_t* datagram) {
-    int ack = -1;
+ack_t recv_ack(int socket_ack_sender, struct sockaddr_in receiver_addr, int sent, datagram_t* datagram) {
+    ack_t ack = {-1, crc32(0L, Z_NULL, 0)};
     socklen_t receiver_addr_len = sizeof(receiver_addr);
-    if (recvfrom(socket_ack_sender, &ack, sizeof(ack), 0, (struct sockaddr *) &receiver_addr, &receiver_addr_len) >= 0 && ack == sent) {
-        datagram->index++;
+    if (recvfrom(socket_ack_sender, &ack, sizeof(ack), 0, (struct sockaddr *) &receiver_addr, &receiver_addr_len) >= 0 
+        && ack.index == sent 
+        && ack.crc == crc32(0L, (const Bytef*)&ack.index, sizeof(ack.index))) {
+            datagram->index++;
     } else {
-        fprintf(stderr, "NACK or timeout, resending %d, ack = %d\n", sent, ack);
+        fprintf(stderr, "NACK or timeout, resending %d, ack = %d\n", sent, ack.index);
+        ack = (ack_t){-1, 0};
     }
     return ack;
 }
 
 
 void send_hash_and_wait_for_ack(int socket_data_sender, int socket_ack_sender, struct sockaddr_in receiver_addr, datagram_t* datagram) {
-    int ack = -1;
+     ack_t ack = {-1, crc32(0L, Z_NULL, 0)};
     socklen_t receiver_addr_len = sizeof(receiver_addr);
-    while (ack != 1) {
-        send_data(socket_data_sender, receiver_addr, datagram);
+    while (ack.index != 1 && ack.crc != crc32(0L, (const Bytef*)&ack.index , sizeof(ack.index ))) {
+        send_data(socket_data_sender, receiver_addr, *datagram);
         fprintf(stderr, "Sending hash\n");
         recvfrom(socket_ack_sender, &ack, sizeof(ack), 0, (struct sockaddr *) &receiver_addr, &receiver_addr_len);
     }
@@ -70,7 +73,7 @@ int main(int argc, char *argv[]) {
     setup_sockets(&socket_data_sender, &socket_ack_sender, &sender_data_addr, &sender_ack_addr, &tv);
     setup_addr(&receiver_addr, NETDERPER_RECEIVER_PORT, NETDERPER_RECEIVER_ADDRESS);
 
-    datagram_t datagram = {.index = 0, .free_space = 0};
+    datagram_t datagram = {0};
     memcpy(datagram.data, final_hash, SHA256_BLOCK_SIZE);
     
     send_hash_and_wait_for_ack(socket_data_sender, socket_ack_sender, receiver_addr, &datagram);
@@ -80,20 +83,15 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "File not found!\n");
         return EXIT_NOT_FOUND;
     }
-
-    int ack = -1, sent = -1;
+    ack_t ack = {-1, crc32(0L, Z_NULL, 0)};
+    int sent = -1;
     while (true) {
-        if (ack == sent) {
+        if (ack.index == sent) 
             read_data(fw, &datagram);
-        }
-
-        sent = send_data(socket_data_sender, receiver_addr, &datagram);
-        fprintf(stderr, "Sent %d\n", sent);
+        sent = send_data(socket_data_sender, receiver_addr, datagram);
         ack = recv_ack(socket_ack_sender, receiver_addr, sent, &datagram);
-
-        if (ack == sent && datagram.free_space != 0) {
+        if (ack.index == sent && datagram.free_space != 0)
             break;
-        }
     }
 
     fclose(fw);
