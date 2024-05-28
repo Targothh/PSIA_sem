@@ -21,7 +21,7 @@ void read_data(FILE *fw, datagram_t *datagram) {
 }
 
 int send_data(int socket_data_sender, struct sockaddr_in receiver_addr, datagram_t datagram) {
-    fprintf(stderr, "Sending %d\n", datagram.index);
+    //fprintf(stderr, "Sending %d\n", datagram.index);
     uLong crc = crc32(0L, Z_NULL, 0);
     datagram.crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
     if (sendto(socket_data_sender, &datagram, sizeof(datagram), 0, (struct sockaddr *) &receiver_addr, sizeof(receiver_addr)) < 0) {
@@ -109,8 +109,6 @@ int main(int argc, char *argv[]) {
                 window.datagrams[i].index = window.index + i;
                 if (window.datagrams[i].free_space != DATA_SIZE) {
                     send_data(socket_data_sender, receiver_addr, window.datagrams[i]);
-                    if (window.datagrams[i].free_space != 0)
-                        fprintf(stderr, "Sent %d\n", window.datagrams[i].free_space);
                 }
             }
         }
@@ -130,10 +128,10 @@ int main(int argc, char *argv[]) {
             }
         }
         window.index += shift;
-        for (int i = WINDOW_SIZE-shift; i < WINDOW_SIZE; i++) {
-            window.acks[i] = (ack_t){-1, crc32(0L, Z_NULL, 0)};
-            window.datagrams[i] = (datagram_t){0};
-        }
+        // for (int i = WINDOW_SIZE-shift; i < WINDOW_SIZE; i++) {
+        //     window.acks[i] = (ack_t){-1, crc32(0L, Z_NULL, 0)};
+        //     window.datagrams[i] = (datagram_t){0};
+        // }
         if (eof && window.index >= eof)
             break;
     }
