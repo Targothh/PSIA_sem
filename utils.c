@@ -44,9 +44,19 @@ void compute_file_hash(const char* filename, unsigned char* final_hash) {
     sha256_final(&hash, final_hash);
     fclose(file);
 }
+
 void print_sha256_hash(const unsigned char* hash) {
     for (int i = 0; i < SHA256_BLOCK_SIZE; i++) {
         printf("%02x", hash[i]);
     }
     printf("\n");
+}
+
+uint16_t acked_shift(window_t window) {
+    for (int i = 0; i < WINDOW_SIZE; i++) {
+        if (window.acks[i].index == -1) {
+            return i;
+        }
+    }
+    return WINDOW_SIZE;
 }

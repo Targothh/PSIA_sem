@@ -55,4 +55,5 @@ void bind_socket(int sockfd, struct sockaddr_in *addr);
 int init_socket(void);
 void compute_file_hash(const char* filename, unsigned char* final_hash);
 void print_sha256_hash(const unsigned char* hash);
+uint16_t acked_shift(window_t window);
 #endif

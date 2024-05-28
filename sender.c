@@ -1,14 +1,6 @@
 #include "packet.h"
 
 
-int count_data(char* data) {
-    int count = 0;
-    for (int i = 0; i < DATA_SIZE; i++) {
-        count += data[i];
-    }
-    return count;
-}
-
 void setup_sockets(int* socket_data_sender, int* socket_ack_sender, struct sockaddr_in* sender_data_addr, struct sockaddr_in* sender_ack_addr, struct timeval* tv) {
     *socket_data_sender = init_socket();
     *socket_ack_sender = init_socket();
@@ -30,7 +22,6 @@ void read_data(FILE *fw, datagram_t *datagram) {
 
 int send_data(int socket_data_sender, struct sockaddr_in receiver_addr, datagram_t datagram) {
     fprintf(stderr, "Sending %d\n", datagram.index);
-    fprintf(stderr, "Data count %d\n", count_data(datagram.data));
     uLong crc = crc32(0L, Z_NULL, 0);
     datagram.crc = crc32(crc, (const Bytef*) datagram.data, (uInt)(sizeof(datagram.data)));
     if (sendto(socket_data_sender, &datagram, sizeof(datagram), 0, (struct sockaddr *) &receiver_addr, sizeof(receiver_addr)) < 0) {
@@ -47,9 +38,6 @@ ack_t recv_ack(int socket_ack_sender, struct sockaddr_in receiver_addr, int inde
         && ack.index < index + WINDOW_SIZE && ack.index >= index 
         && ack.crc == crc32(0L, (const Bytef*)&ack.index, sizeof(ack.index))) {
     } else {
-        fprintf(stderr, "NACK or timeout, resending %d, ack = %d\n", index, ack.index);
-        fprintf(stderr, "crc == ack.crc %d\n", ack.crc == crc32(0L, (const Bytef*)&ack.index, sizeof(ack.index)));
-        fprintf(stderr, "ack.index <= index + WINDOW_SIZE && ack.index >= index %d\n", ack.index <= index + WINDOW_SIZE && ack.index >= index);
         ack = (ack_t){-1, 0};
     }
     return ack;
@@ -67,14 +55,6 @@ void send_hash_and_wait_for_ack(int socket_data_sender, int socket_ack_sender, s
     print_sha256_hash(datagram->data);
 }
 
-uint16_t acked_shift(window_t window) {
-    for (int i = 0; i < WINDOW_SIZE; i++) {
-        if (window.acks[i].index == -1) {
-            return i;
-        }
-    }
-    return WINDOW_SIZE - 1;
-}
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -109,7 +89,6 @@ int main(int argc, char *argv[]) {
     }
 
     ack_t ack = {-1, crc32(0L, Z_NULL, 0)};
-    int sent = -1;
     int read = -1;
     int eof = 0;
     while (true) {
@@ -117,39 +96,45 @@ int main(int argc, char *argv[]) {
             if (read < window.index + i && !eof){
                 read_data(fw, &window.datagrams[i]);
                 if (window.datagrams[i].free_space == DATA_SIZE){
-                    eof = 1;
+                    eof = read;
                     break;
                 }
-                read ++;
-                printf("read %d to index %d\n", read, window.index + i);
+               read ++;
             }
         }
         for(int i = 0; i < WINDOW_SIZE; i++){
+            if (eof && window.index + i >= eof)
+                break;
             if (window.acks[i].index == -1){
                 window.datagrams[i].index = window.index + i;
                 if (window.datagrams[i].free_space != DATA_SIZE) {
-                    sent = send_data(socket_data_sender, receiver_addr, window.datagrams[i]);
+                    send_data(socket_data_sender, receiver_addr, window.datagrams[i]);
+                    if (window.datagrams[i].free_space != 0)
+                        fprintf(stderr, "Sent %d\n", window.datagrams[i].free_space);
                 }
             }
         }
         ack = recv_ack(socket_ack_sender, receiver_addr, window.index);
-        fprintf(stderr, "recvdAck %d\n", ack.index);
-        if (ack.index <= window.index + WINDOW_SIZE && ack.index >= window.index)
-            for (int i = 0; i <= ack.index - window.index; i++)
-                window.acks[i] = ack; 
+        if (ack.index <= window.index + WINDOW_SIZE && ack.index >= window.index){
+            window.acks[ack.index - window.index] = ack; 
+        }
         int shift = acked_shift(window);
-        fprintf(stderr, "shift %d\n", shift);
-        for (int i = 0; i <= WINDOW_SIZE - shift; i++) {
-            window.datagrams[i] = window.datagrams[i + shift];
-            window.acks[i] = window.acks[i + shift];
+        for (int i = 0; i < shift; i++) {
+            if (i + shift < WINDOW_SIZE){
+                window.datagrams[i] = window.datagrams[i + shift];
+                window.acks[i] = window.acks[i + shift];
+            }else{
+                window.acks[i] = (ack_t){-1, crc32(0L, Z_NULL, 0)};
+                window.datagrams[i] = (datagram_t){0};
+            
+            }
         }
         window.index += shift;
-        for (int i = WINDOW_SIZE - shift; i < WINDOW_SIZE; i++) {
-            fprintf(stderr, "i %d\n", i);
+        for (int i = WINDOW_SIZE-shift; i < WINDOW_SIZE; i++) {
             window.acks[i] = (ack_t){-1, crc32(0L, Z_NULL, 0)};
             window.datagrams[i] = (datagram_t){0};
         }
-        if (ack.index == sent && eof)
+        if (eof && window.index >= eof)
             break;
     }
 
