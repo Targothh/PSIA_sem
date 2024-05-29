@@ -10,6 +10,7 @@
 #include <zlib.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <time.h>
 #include "sha256.h"
 #define PACKET_SIZE 1024
 #define DATA_SIZE 958
@@ -29,7 +30,7 @@
 #define RECEIVER_PORT 15000
 #define MAX_TIMEOUT 500000
 #define EXIT_NOT_FOUND 404
-#define WINDOW_SIZE 5
+#define WINDOW_SIZE 10
 #include <stdint.h>
 
 typedef struct {
